@@ -1,0 +1,2 @@
+# pointnet_cuda_eval
+UCAS2024课程GPU架构与编程大作业1，编写pointnet的cuda推理程序。
