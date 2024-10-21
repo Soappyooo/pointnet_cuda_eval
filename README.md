@@ -2,7 +2,7 @@
 UCAS2024课程GPU架构与编程大作业1，编写pointnet的cuda推理程序。
 
 ## v1
-全部采用naive核函数，对样本点采样1024([参考原文对点云分类的采样数量](https://arxiv.org/pdf/1612.00593))，使用cudaMallocAsync和cudaFreeAsync提高显存利用效率（但错误的在网络内部使用了cudaDeviceSynchronize）。在v100上的推理时间约1.4秒。
+全部采用naive核函数，对样本点采样1024(参考[原文](https://arxiv.org/pdf/1612.00593)对点云分类的采样数量。~~实测采样64个就能跑，可以直接把速度提升16倍~~)，使用cudaMallocAsync和cudaFreeAsync提高显存利用效率（但错误的在网络内部使用了cudaDeviceSynchronize）。在v100上的推理时间约1.4秒。
 
 ## v2
 优化了显存池的使用，网络内部使用cudaStreamSynchronize，在达到缓存阈值后释放显存。在v100上的推理时间约0.9秒。
