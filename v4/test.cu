@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-#define NN_DTYPE half
+#define NN_DTYPE float
 #define Cpp14
 #define DEFINE_ATTRIBUTE(attr) {#attr, typeid(attr).name()}
 #define OFFSET(row, col, ld) ((row) * (ld) + (col))
@@ -2383,7 +2383,7 @@ template <typename T> class Conv1d : public Module<T>
 
                 check_cuda_error(cudaGetLastError());
                 // check_cuda_error(cudaDeviceSynchronize());
-                check_cuda_error(cudaStreamSynchronize(0));
+                // check_cuda_error(cudaStreamSynchronize(0));
             }
             else
             {
@@ -2428,7 +2428,7 @@ template <typename T> class Conv1d : public Module<T>
 
                 check_cuda_error(cudaGetLastError());
                 // check_cuda_error(cudaDeviceSynchronize());
-                check_cuda_error(cudaStreamSynchronize(0));
+                // check_cuda_error(cudaStreamSynchronize(0));
             }
             else
             {
@@ -2529,7 +2529,7 @@ template <typename T> class Linear : public Module<T>
 
             check_cuda_error(cudaGetLastError());
             // check_cuda_error(cudaDeviceSynchronize());
-            check_cuda_error(cudaStreamSynchronize(0));
+            // check_cuda_error(cudaStreamSynchronize(0));
         }
         else
         {
@@ -2792,28 +2792,13 @@ template <typename T> float calc_accuracy(cu::Tensor<T> &output, cu::Tensor<T> &
     int correct = 0;
     if (output.is_cuda)
     {
-        // int *d_correct;
-        // cudaMallocAsync(&d_correct, sizeof(int), 0);
-        // cudaMemset(d_correct, 0, sizeof(int));
-
-        // // cudaDeviceSynchronize();
-        // int block_size = 256;
-        // int grid_size = (output.size + block_size - 1) / block_size;
-        // cu::kernel::calc_accuracy_kernel<<<grid_size, block_size>>>(output.data, target.data, output.size,
-        // d_correct);
-        // // cudaDeviceSynchronize();
-        // check_cuda_error(cudaGetLastError());
-        // // check_cuda_error(cudaStreamSynchronize(0));
-
-        // cudaMemcpy(&correct, d_correct, sizeof(int), cudaMemcpyDeviceToHost);
-        // cudaFreeAsync(d_correct, 0);
-        std::invalid_argument("Not implemented");
+        throw std::invalid_argument("Not implemented");
     }
     else
     {
         for (int i = 0; i < output.size; ++i)
         {
-            if (output.data[i] == target.data[i])
+            if (static_cast<int>(output.data[i]) == static_cast<int>(target.data[i]))
             {
                 correct++;
             }
@@ -2824,9 +2809,6 @@ template <typename T> float calc_accuracy(cu::Tensor<T> &output, cu::Tensor<T> &
 
 std::vector<float> collate(std::vector<float> &points, int target_num)
 {
-    //  input: points = [x1, y1, z1, x2, y2, z2, ...], num=points.size()/3
-    // process: random drop points to make the number of points to be 1024
-    // output: points = [x1, y1, z1, x2, y2, z2, ...], num=1024
     if (points.size() % 3 != 0)
     {
         throw std::invalid_argument("Invalid points size");
@@ -3287,7 +3269,6 @@ int main(int argc, char *argv[])
 
     cudaMemPool_t mempool;
     cudaDeviceGetDefaultMemPool(&mempool, 0);
-    // uint64_t threshold = 1024L * 1024 * 1024 * 8;
     uint64_t threshold = UINT64_MAX;
     cudaMemPoolSetAttribute(mempool, cudaMemPoolAttrReleaseThreshold, &threshold);
     cudaFree(0);
@@ -3296,7 +3277,6 @@ int main(int argc, char *argv[])
     // 第一个参数是程序所在的目录，这个目录是存放前一步训练模型参数文件的目录，从这个目录下读取模型参数文件，相对于这个目录读取测试集点云数据和标签
 
     std::string file_path = "./data/test_point_clouds.h5";
-
     bool is_cuda = true;
     int pc_num = 1024;
     // 读取模型参数
@@ -3326,6 +3306,7 @@ int main(int argc, char *argv[])
 
     // warm up
     model(cu::Tensor<NN_DTYPE>(x));
+    check_cuda_error(cudaStreamSynchronize(0));
 
     // 开始计时
     auto start = std::chrono::high_resolution_clock::now();

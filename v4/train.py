@@ -54,18 +54,20 @@ import torch.nn.parallel
 from torch.autograd import Variable
 import numpy as np
 import h5py
+import random
 
 # from tqdm import tqdm
 
 # torch.cuda.set_per_process_memory_fraction(1.0)
 
 # import provider
-batch_size = 512
+batch_size = 384
 num_class = 10
 total_epoch = 100
 lr = 0.01
 torch.manual_seed(0)
 np.random.seed(0)
+random.seed(0)
 script_dir = os.path.dirname(__file__)  # 获取脚本所在的目录
 # print(os.path.abspath(script_dir))
 # 创建数据集实例
@@ -347,6 +349,24 @@ def random_scale_point_cloud(batch_data, scale_low=0.8, scale_high=1.25):
     return batch_data
 
 
+def random_rotate_point_cloud(batch_data, rotation_range=15):
+    """Randomly rotate the point cloud. Rotation is per point cloud.
+    Input:
+        BxNx3 array, original batch of point clouds
+    Return:
+        BxNx3 array, rotated batch of point clouds
+    """
+    B, N, C = batch_data.shape
+    rotated_data = np.zeros(batch_data.shape, dtype=np.float32)
+    for k in range(B):
+        rotation_angle = np.random.uniform() * rotation_range / 180 * np.pi  # rotation_angle [0, 2pi]
+        cosv = np.cos(rotation_angle)
+        sinv = np.sin(rotation_angle)
+        rotation_matrix = np.array([[cosv, -sinv, 0], [sinv, cosv, 0], [0, 0, 1]])
+        rotated_data[k, ...] = np.dot(batch_data[k, ...], rotation_matrix)
+    return rotated_data
+
+
 def random_point_dropout(batch_pc, max_dropout_ratio=0.875):
     """batch_pc: BxNx3"""
     for b in range(batch_pc.shape[0]):
@@ -420,6 +440,7 @@ def main():
             # points = random_point_dropout(points)
             points[:, :, 0:3] = random_scale_point_cloud(points[:, :, 0:3])
             points[:, :, 0:3] = shift_point_cloud(points[:, :, 0:3])
+            points[:, :, 0:3] = random_rotate_point_cloud(points[:, :, 0:3])
             points = torch.Tensor(points)
             points = points.transpose(2, 1)
 
