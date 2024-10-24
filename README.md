@@ -11,4 +11,4 @@ UCAS2024课程GPU架构与编程大作业1，编写pointnet的cuda推理程序�
 将线性层和卷积层中的gemm部分替换为2d blocktiling([参考1](https://github.com/wangzyon/NVIDIA_SGEMM_PRACTICE))([参考2](https://github.com/siboehm/SGEMM_CUDA))实现，对形状不规则的tensor加入边界检查，对初始1000条测试样本pad至1024条。在v100上的推理时间约0.66秒。
 
 ## v4
-去除了大部分cudaStreamSynchronize(~~但是保留了一部分，不然在本地会爆显存，并且有的地方去掉会更慢(?)~~)。将二维和三维输入的batchnorm核函数、bmm采用2d blocktiling实现。将模型从单精度变成半精度进行推理和tensor存储，核函数内部运算以单精度进行。
+去除了大部分cudaStreamSynchronize。将二维和三维输入的batchnorm核函数、bmm采用blocktiling实现。模型添加半精度进行推理和tensor存储，核函数内部运算以单精度进行。在本地以半精度推理速度提高约一倍，但服务器上变慢(1024采样点情况下)，所以仍然采用单精度。在v100上的推理时间约0.49秒。
