@@ -12,3 +12,6 @@ UCAS2024课程GPU架构与编程大作业1，编写pointnet的cuda推理程序�
 
 ## v4
 去除了大部分cudaStreamSynchronize。将二维和三维输入的batchnorm核函数、bmm采用blocktiling实现。模型添加半精度进行推理和tensor存储，核函数内部运算以单精度进行。在本地以半精度推理速度提高约一倍，但服务器上变慢(1024采样点情况下)，所以仍然采用单精度。在v100上的推理时间约0.49秒。
+
+## v5
+采样点设置为128，添加了符合边界条件的情况下使用tensor core推理([参考](https://github.com/nicolaswilde/cuda-tensorcore-hgemm))。尝试用最远点采样，但是效果似乎没有随机采样好。最终以半精度推理，部分线性层使用tensor core，随机采样。
