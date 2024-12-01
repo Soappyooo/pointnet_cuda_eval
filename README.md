@@ -1,5 +1,6 @@
 # pointnet_cuda_eval
-UCAS2024课程GPU架构与编程大作业1，编写pointnet的cuda推理程序，在3D MNIST数据集上测试。
+UCAS2024课程GPU架构与编程大作业1，编写pointnet的cuda推理程序，在3D MNIST数据集上测试。 
+关于triton的训练与推理，见[这里](https://github.com/Soappyooo/pointnet_triton_train)。
 
 ## v1
 全部采用naive核函数，对样本点采样1024(参考[原文](https://arxiv.org/pdf/1612.00593)对点云分类的采样数量。~~实测采样64个就能跑，可以直接把速度提升16倍~~)，使用cudaMallocAsync和cudaFreeAsync提高显存利用效率（但错误的在网络内部使用了cudaDeviceSynchronize）。在v100上的推理时间约1.4秒。
